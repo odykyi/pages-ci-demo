@@ -1,0 +1,34 @@
+# Publishes a report this job builds to https://pages.flisk.si/@odykyi/pages-ci-demo/ with no secret.
+name: Publish report
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the report
+        run: |
+          mkdir -p report
+          {
+            echo "# CI report"
+            echo
+            echo "Built by run [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) from \`${GITHUB_SHA::7}\` at $(date -u '+%Y-%m-%d %H:%M UTC')."
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| node | $(node --version) |"
+            echo "| runner | ${RUNNER_OS} ${RUNNER_ARCH} |"
+          } > report/index.md
+      - uses: flisk-sh/pages@main
+        id: pages
+        with:
+          path: report
+          command: publish
+          slug: pages-ci-demo
+      - run: echo "Published to ${{ steps.pages.outputs.url }}"
